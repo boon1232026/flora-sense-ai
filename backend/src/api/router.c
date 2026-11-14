@@ -149,12 +149,12 @@ static int handle_sim_telemetry(const char *path, const char *body, char *respon
     }
     double value = 0;
     reading.soil_valid = json_number(body, "soil_moisture_percent", &value);
-    reading.soil_moisture = value;
+    reading.soil_moisture = reading.soil_valid ? value : 0;
     reading.air_valid = json_number(body, "air_temperature_c", &value);
-    reading.air_temperature = value;
-    if (json_number(body, "air_humidity_percent", &value)) reading.air_humidity = value;
+    reading.air_temperature = reading.air_valid ? value : 0;
+    reading.air_humidity = json_number(body, "air_humidity_percent", &value) ? value : 0;
     reading.leaf_valid = json_number(body, "leaf_temperature_c", &value);
-    reading.leaf_temperature = value;
+    reading.leaf_temperature = reading.leaf_valid ? value : 0;
     sim_store_add_reading(&reading);
     snprintf(response, response_size, "{\"status\":\"accepted\",\"plantId\":\"%s\"}", reading.plant_id);
     return 202;

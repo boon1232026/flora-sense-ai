@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include <DHTesp.h>
+#include <DHTNEW.h>
 
 const char* WIFI_SSID = "Wokwi-GUEST";
 const char* WIFI_PASSWORD = "";
@@ -23,7 +23,7 @@ const uint32_t MAX_PUMP_SECONDS = 120;
 
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
-DHTesp dht;
+DHTNEW dht(DHT_PIN);
 
 String plantIds[PLANT_CHANNELS];
 bool pumpRunning = false;
@@ -222,7 +222,7 @@ void connectMqtt() {
   }
 }
 
-void publishTelemetry(size_t channel, bool airValid, const TempAndHumidity& air) {
+void publishTelemetry(size_t channel, bool airValid, float airTemperature, float airHumidity) {
   int soilRaw = analogRead(SOIL_PINS[channel]);
   int leafOffsetRaw = analogRead(LEAF_OFFSET_PINS[channel]);
 
@@ -236,9 +236,9 @@ void publishTelemetry(size_t channel, bool airValid, const TempAndHumidity& air)
   doc["sensor_channel"] = channel;
   doc["metrics"]["soil_moisture_percent"] = soilMoisture;
   if (airValid) {
-    doc["metrics"]["air_temperature_c"] = air.temperature;
-    doc["metrics"]["air_humidity_percent"] = air.humidity;
-    doc["metrics"]["leaf_temperature_c"] = air.temperature + leafOffset;
+    doc["metrics"]["air_temperature_c"] = airTemperature;
+    doc["metrics"]["air_humidity_percent"] = airHumidity;
+    doc["metrics"]["leaf_temperature_c"] = airTemperature + leafOffset;
   }
 
   char payload[512];
@@ -247,11 +247,17 @@ void publishTelemetry(size_t channel, bool airValid, const TempAndHumidity& air)
 }
 
 void publishTelemetry() {
-  TempAndHumidity air = dht.getTempAndHumidity();
-  bool airValid = !isnan(air.temperature) && !isnan(air.humidity);
+  bool airValid = dht.read() == DHTLIB_OK;
+  float airTemperature = dht.getTemperature();
+  float airHumidity = dht.getHumidity();
+  if (airValid) {
+    Serial.printf("DHT22: %.1f C, %.1f %%\n", airTemperature, airHumidity);
+  } else {
+    Serial.println("DHT22: read failed");
+  }
   for (size_t channel = 0; channel < PLANT_CHANNELS; ++channel) {
     if (plantIds[channel].length()) {
-      publishTelemetry(channel, airValid, air);
+      publishTelemetry(channel, airValid, airTemperature, airHumidity);
     }
   }
 }
@@ -265,7 +271,7 @@ void setup() {
     pinMode(LEAF_OFFSET_PINS[channel], INPUT);
   }
   analogReadResolution(12);
-  dht.setup(DHT_PIN, DHTesp::DHT22);
+  dht.setType(22);
   connectWifi();
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
   mqtt.setCallback(mqttCallback);
