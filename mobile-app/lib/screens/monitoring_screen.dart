@@ -298,12 +298,14 @@ class _Metric extends StatelessWidget {
           const Spacer(),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: FloraPalette.leafDeep,
                   fontWeight: FontWeight.w900,
                 ),
           ),
-          Text(caption, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+          Text(caption, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
         ],
       ),
     );
