@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Device status",
+  "type": "object",
+  "required": ["schema_version", "device_id", "reported_at", "mode", "pump", "network", "firmware_version"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "device_id": {"type": "string"},
+    "reported_at": {"type": "string", "format": "date-time"},
+    "mode": {"enum": ["TEST", "MANUAL", "AUTO"]},
+    "pump": {"type": "object", "required": ["state", "run_remaining_seconds"], "properties": {
+      "state": {"enum": ["off", "priming", "running", "fault"]},
+      "run_remaining_seconds": {"type": "integer", "minimum": 0}
+    }},
+    "network": {"type": "object", "properties": {"wifi_rssi_dbm": {"type": "integer"}}},
+    "firmware_version": {"type": "string"}
+  },
+  "additionalProperties": false
+}

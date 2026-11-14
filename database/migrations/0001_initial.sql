@@ -1,0 +1,2 @@
+-- The canonical initial schema is ../schema.sql. Future incremental migrations
+-- should be numbered and transactional; do not edit published migrations.

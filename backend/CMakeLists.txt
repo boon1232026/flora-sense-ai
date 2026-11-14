@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(flora_backend C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+file(GLOB_RECURSE FLORA_SOURCES CONFIGURE_DEPENDS "src/*.c")
+add_executable(flora-backend ${FLORA_SOURCES})
+target_include_directories(flora-backend PRIVATE src)
+target_compile_options(flora-backend PRIVATE -Wall -Wextra -Werror -pedantic)

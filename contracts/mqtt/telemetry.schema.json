@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flora-sense.local/contracts/mqtt/telemetry.schema.json",
+  "title": "Flora Sense telemetry",
+  "type": "object",
+  "required": ["schema_version", "device_id", "plant_id", "sampled_at", "metrics"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "device_id": {"type": "string", "minLength": 1},
+    "plant_id": {"type": "string", "minLength": 1},
+    "sampled_at": {"type": ["string", "null"], "format": "date-time"},
+    "metrics": {
+      "type": "object",
+      "required": ["soil_moisture_percent", "air_temperature_c", "air_humidity_percent", "leaf_temperature_c"],
+      "properties": {
+        "soil_moisture_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "air_temperature_c": {"type": ["number", "null"], "minimum": -40, "maximum": 100},
+        "air_humidity_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "leaf_temperature_c": {"type": ["number", "null"], "minimum": -40, "maximum": 125},
+        "supply_voltage": {"type": ["number", "null"], "minimum": 0},
+        "rssi_dbm": {"type": ["number", "null"], "maximum": 0}
+      },
+      "additionalProperties": false
+    },
+    "sensor_status": {"type": "object", "additionalProperties": {"enum": ["ok", "fault", "missing"]}}
+  },
+  "additionalProperties": false
+}

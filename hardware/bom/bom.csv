@@ -1,0 +1,12 @@
+ref,qty,part,example,notes
+U1,1,ESP32-S3 development board,ESP32-S3-DevKit,Verify board pinout before wiring
+U2,1,Capacitive soil moisture sensor,3.3V analog module,Calibrate dry/wet values per soil type
+U3,1,SHT31 temperature/humidity module,I2C 0x44,Weather-protected placement
+U4,1,MLX90614 IR temperature sensor,I2C 0x5A,Calibrated field of view toward leaf
+U5,1,DC water pump,Load-rated pump,Match flow/head to irrigation line
+Q1,1,N-channel MOSFET driver,Logic-level module,Driver must include flyback/TVS or external diode
+PS1,1,Logic supply,5V regulated,Follow board requirements
+PS2,1,Pump supply,Load-rated DC supply,Separate path and fuse
+F1,1,Fuse,Size to wire/pump,Protect pump feed
+ENC1,1,IP-rated enclosure,Cable glands included,Keep electronics dry
+S1,1,TEST interlock switch,Series in pump path,Physical actuator cut-off

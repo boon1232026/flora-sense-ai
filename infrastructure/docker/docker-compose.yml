@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: postgres:16.3-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-flora_sense}
+      POSTGRES_USER: ${POSTGRES_USER:-flora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flora-local}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ../../database/seed.sql:/docker-entrypoint-initdb.d/002-seed.sql:ro
+      - ../../database/policies/rls.sql:/docker-entrypoint-initdb.d/003-rls.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-flora} -d $${POSTGRES_DB:-flora_sense}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  emqx:
+    image: emqx/emqx:5.8.3
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+      - "18083:18083"
+    volumes:
+      - ../emqx/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - emqx-data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/emqx/bin/emqx ctl status"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_PORT: 18080
+      POSTGRES_HOST: postgres
+      MQTT_HOST: emqx
+      FLORA_API_TOKEN: ${FLORA_API_TOKEN:-}
+      FLORA_DEVICE_TOKEN: ${FLORA_DEVICE_TOKEN:-}
+      FLORA_STATE_FILE: /data/flora-state.tsv
+      FLORA_UPLOAD_DIR: /data/uploads
+    ports:
+      - "18080:18080"
+    volumes:
+      - backend-data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      emqx:
+        condition: service_healthy
+
+  mqtt-bridge:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../:/app
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && python mqtt_bridge.py"
+    environment:
+      BACKEND_URL: http://backend:18080
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-engine:8000}
+      FLORA_API_TOKEN: ${FLORA_API_TOKEN:-}
+      MQTT_HOST: emqx
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USERNAME: ${MQTT_USERNAME:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+      MQTT_TLS_CA_FILE: ${MQTT_TLS_CA_FILE:-}
+      FLORA_DEVICE_TOKEN: ${FLORA_DEVICE_TOKEN:-}
+      FLORA_DEVICE_IDS: ${FLORA_DEVICE_IDS:-FLORA-ESP32-SIM}
+      COMMAND_POLL_SECONDS: ${COMMAND_POLL_SECONDS:-2}
+      IMAGE_POLL_SECONDS: ${IMAGE_POLL_SECONDS:-3}
+    depends_on:
+      backend:
+        condition: service_started
+      emqx:
+        condition: service_healthy
+
+  ai-engine:
+    build:
+      context: ../../ai-engine
+      dockerfile: Dockerfile
+    ports:
+      - "18001:8000"
+    environment:
+      MODEL_VERSION: flora-rules-v1
+
+volumes:
+  postgres-data:
+  emqx-data:
+  backend-data:

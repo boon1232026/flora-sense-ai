@@ -1,0 +1,279 @@
+openapi: 3.1.0
+info:
+  title: FLORA SENSE AI API
+  version: 0.1.0
+  description: Backend contract for Flutter clients and internal orchestration.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /v1/dashboard:
+    get:
+      summary: Aggregate dashboard snapshot
+      responses:
+        '200': {description: Dashboard snapshot}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /v1/session:
+    get:
+      summary: Operator session and expected device provisioning metadata
+      responses:
+        '200': {description: Session and suggested device identity}
+  /v1/plants:
+    get:
+      summary: List authorized plants
+      responses:
+        '200': {description: Plant collection}
+    post:
+      summary: Register a plant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, zone]
+              properties:
+                name: {type: string, minLength: 1}
+                zone: {type: string, minLength: 1}
+                deviceId: {type: string}
+                imageAsset: {type: string}
+                imagePath: {type: string}
+                fileName: {type: string, maxLength: 120}
+                imageBase64: {type: string, format: byte}
+                healthStatus: {enum: [LOW, MEDIUM, HIGH]}
+                soilMoisture: {type: number, minimum: 0, maximum: 100}
+                sensorChannel: {type: integer, minimum: 0, maximum: 3}
+                soilValid: {type: boolean}
+      responses:
+        '201': {description: Plant created}
+        '400': {description: Invalid plant or image upload}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v1/plants/{plant_id}:
+    post:
+      summary: Update plant metadata, image, or device binding
+      parameters:
+        - $ref: '#/components/parameters/PlantId'
+      responses:
+        '200': {description: Plant updated}
+        '404': {description: Plant not found}
+    delete:
+      summary: Delete a plant and release its hardware sensor channel
+      parameters:
+        - $ref: '#/components/parameters/PlantId'
+      responses:
+        '200': {description: Plant deleted}
+        '404': {description: Plant not found}
+  /v1/plants/{plant_id}/readings:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/PlantId'
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+      responses:
+        '200': {description: Time-ordered readings}
+  /v1/plants/{plant_id}/images:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/PlantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [storage_path, captured_at]
+              properties:
+                storage_path: {type: string}
+                captured_at: {type: string, format: date-time}
+                metadata: {type: object}
+      responses:
+        '202': {description: Image analysis queued}
+  /v1/images/upload:
+    post:
+      summary: Upload plant image bytes and create an image record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plantId, fileName, dataBase64]
+              properties:
+                plantId: {type: string}
+                fileName: {type: string, maxLength: 120}
+                dataBase64: {type: string, format: byte}
+      responses:
+        '201': {description: Image stored}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /v1/images/analysis:
+    post:
+      summary: Store computed image metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, status, exg, green_ratio, quality_ok]
+              properties:
+                id: {type: string}
+                status: {enum: [UPLOADED, ANALYZED, FAILED]}
+                exg: {type: number}
+                green_ratio: {type: number, minimum: 0, maximum: 1}
+                quality_ok: {type: boolean}
+      responses:
+        '200': {description: Metrics stored}
+        '404': {description: Image not found}
+  /v1/images/{image_id}:
+    post:
+      summary: Update image plant binding or replace uploaded bytes
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Image updated}
+        '404': {description: Image not found}
+    delete:
+      summary: Delete an image record and its uploaded file
+      parameters:
+        - name: image_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Image deleted}
+        '404': {description: Image not found}
+  /v1/devices:
+    get:
+      summary: List registered devices and live status
+      responses:
+        '200': {description: Device list}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+    post:
+      summary: Register the primary device expected to report through MQTT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, name]
+              properties:
+                id: {type: string}
+                name: {type: string}
+      responses:
+        '201': {description: Device registered}
+        '422': {description: A device is already registered}
+  /v1/devices/{device_id}:
+    post:
+      summary: Update device display name or provisioned ID while offline
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: {type: string}
+                newId: {type: string}
+      responses:
+        '200': {description: Device updated}
+        '404': {description: Device not found}
+        '422': {description: Device is online or request is invalid}
+    delete:
+      summary: Delete an offline registered device with no bound plants
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Device deleted}
+        '404': {description: Device not found}
+        '422': {description: Device is online or in use}
+  /v1/devices/{device_id}/telemetry:
+    post:
+      summary: Ingest a device telemetry sample
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plant_id, soil_moisture_percent, air_temperature_c, air_humidity_percent, leaf_temperature_c]
+              properties:
+                plant_id: {type: string}
+                soil_moisture_percent: {type: number, minimum: 0, maximum: 100}
+                air_temperature_c: {type: number, minimum: -40, maximum: 100}
+                air_humidity_percent: {type: number, minimum: 0, maximum: 100}
+                leaf_temperature_c: {type: number, minimum: -40, maximum: 125}
+      responses:
+        '202': {description: Telemetry accepted}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /v1/devices/{device_id}/commands:
+    post:
+      summary: Request bounded pump operation
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: {type: string, minLength: 8, maxLength: 128}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plant_id, action, duration_seconds]
+              properties:
+                plant_id: {type: string}
+                action: {enum: [start, stop]}
+                duration_seconds: {type: integer, minimum: 1, maximum: 1800}
+      responses:
+        '202': {description: Command accepted for device validation}
+        '409': {description: Conflicting or replayed command}
+        '422': {description: Unsafe or expired command}
+  /v1/devices/{device_id}/command-ack:
+    post:
+      summary: Record a device pump command acknowledgement
+      responses:
+        '202': {description: Acknowledgement accepted}
+  /v1/pump-commands/{command_id}:
+    get:
+      responses:
+        '200': {description: Command lifecycle}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PlantId:
+      name: plant_id
+      in: path
+      required: true
+      schema: {type: string}
+  responses:
+    Unauthenticated:
+      description: Missing or invalid bearer token
+    Forbidden:
+      description: Authenticated user does not own the target resource

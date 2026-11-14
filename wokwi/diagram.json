@@ -1,0 +1,506 @@
+{
+  "version": 1,
+  "author": "FLORA SENSE AI",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -150,
+      "left": 220,
+      "attrs": {
+        "temperature": "32.0",
+        "humidity": "58",
+        "label": "เซนเซอร์อากาศ DHT22"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "soilPot1",
+      "top": 140,
+      "left": 220,
+      "attrs": {
+        "value": "1800",
+        "label": "ความชื้นดิน CH0"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "soilPot2",
+      "top": 260,
+      "left": 220,
+      "attrs": {
+        "value": "1500",
+        "label": "ความชื้นดิน CH1"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "soilPot3",
+      "top": 380,
+      "left": 220,
+      "attrs": {
+        "value": "2100",
+        "label": "ความชื้นดิน CH2"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "soilPot4",
+      "top": 500,
+      "left": 220,
+      "attrs": {
+        "value": "1200",
+        "label": "ความชื้นดิน CH3"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "leafPot1",
+      "top": 140,
+      "left": 420,
+      "attrs": {
+        "value": "1600",
+        "label": "อุณหภูมิใบ CH0"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "leafPot2",
+      "top": 260,
+      "left": 420,
+      "attrs": {
+        "value": "1400",
+        "label": "อุณหภูมิใบ CH1"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "leafPot3",
+      "top": 380,
+      "left": 420,
+      "attrs": {
+        "value": "1700",
+        "label": "อุณหภูมิใบ CH2"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "leafPot4",
+      "top": 500,
+      "left": 420,
+      "attrs": {
+        "value": "1300",
+        "label": "อุณหภูมิใบ CH3"
+      }
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "pumpRelay",
+      "top": 160,
+      "left": -220,
+      "attrs": {
+        "label": "รีเลย์ปั๊มน้ำ"
+      }
+    },
+    {
+      "type": "wokwi-vcc",
+      "id": "pumpPower",
+      "top": 80,
+      "left": -220,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "pumpLed",
+      "top": 160,
+      "left": -420,
+      "attrs": {
+        "color": "blue",
+        "label": "ไฟแทนปั๊มน้ำ"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "pumpResistor",
+      "top": 240,
+      "left": -410,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "title",
+      "top": -230,
+      "left": -40,
+      "attrs": {
+        "text": "โครงวงจรจำลอง FLORA SENSE AI"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "boardLabel",
+      "top": -80,
+      "left": -10,
+      "attrs": {
+        "text": "บอร์ด ESP32-S3\nควบคุมเซนเซอร์และปั๊ม"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "dhtLabel",
+      "top": -235,
+      "left": 210,
+      "attrs": {
+        "text": "DHT22\nวัดอุณหภูมิและความชื้นอากาศ\nGPIO15"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "soilHeader",
+      "top": 92,
+      "left": 220,
+      "attrs": {
+        "text": "ตัวจำลองความชื้นในดิน"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "soil1Label",
+      "top": 128,
+      "left": 330,
+      "attrs": {
+        "text": "CH0 · GPIO1\nดิน: ผักกาดหอม"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "soil2Label",
+      "top": 248,
+      "left": 330,
+      "attrs": {
+        "text": "CH1 · GPIO2\nดินต้นที่ 2"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "soil3Label",
+      "top": 368,
+      "left": 330,
+      "attrs": {
+        "text": "CH2 · GPIO4\nดินต้นที่ 3"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "soil4Label",
+      "top": 488,
+      "left": 330,
+      "attrs": {
+        "text": "CH3 · GPIO6\nดินต้นที่ 4"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "leafHeader",
+      "top": 92,
+      "left": 430,
+      "attrs": {
+        "text": "ตัวจำลองอุณหภูมิใบ"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "leaf1Label",
+      "top": 128,
+      "left": 535,
+      "attrs": {
+        "text": "CH0 · GPIO7\nใบต้นที่ 1"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "leaf2Label",
+      "top": 248,
+      "left": 535,
+      "attrs": {
+        "text": "CH1 · GPIO8\nใบต้นที่ 2"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "leaf3Label",
+      "top": 368,
+      "left": 535,
+      "attrs": {
+        "text": "CH2 · GPIO9\nใบต้นที่ 3"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "leaf4Label",
+      "top": 488,
+      "left": 535,
+      "attrs": {
+        "text": "CH3 · GPIO10\nใบต้นที่ 4"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "relayLabel",
+      "top": 78,
+      "left": -300,
+      "attrs": {
+        "text": "รีเลย์ปั๊มน้ำ\nรับคำสั่ง GPIO5"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "pumpLabel",
+      "top": 102,
+      "left": -525,
+      "attrs": {
+        "text": "ไฟแทนปั๊มน้ำ\nติดเมื่อปั๊มทำงาน"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "legend",
+      "top": 585,
+      "left": -360,
+      "attrs": {
+        "text": "คำอธิบายสาย\nเขียว = เซนเซอร์ดิน\nส้ม = เซนเซอร์ใบ\nน้ำเงิน = วงจรปั๊ม\nแดง = 3V3 / ไฟเลี้ยง\nดำ = GND"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "esp:15",
+      "dht1:SDA",
+      "green",
+      []
+    ],
+    [
+      "esp:3V3",
+      "dht1:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:GND.1",
+      "dht1:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:1",
+      "soilPot1:SIG",
+      "green",
+      []
+    ],
+    [
+      "esp:2",
+      "soilPot2:SIG",
+      "green",
+      []
+    ],
+    [
+      "esp:4",
+      "soilPot3:SIG",
+      "green",
+      []
+    ],
+    [
+      "esp:6",
+      "soilPot4:SIG",
+      "green",
+      []
+    ],
+    [
+      "esp:7",
+      "leafPot1:SIG",
+      "orange",
+      []
+    ],
+    [
+      "esp:8",
+      "leafPot2:SIG",
+      "orange",
+      []
+    ],
+    [
+      "esp:9",
+      "leafPot3:SIG",
+      "orange",
+      []
+    ],
+    [
+      "esp:10",
+      "leafPot4:SIG",
+      "orange",
+      []
+    ],
+    [
+      "esp:3V3",
+      "soilPot1:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "soilPot2:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "soilPot3:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "soilPot4:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "leafPot1:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "leafPot2:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "leafPot3:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:3V3",
+      "leafPot4:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "soilPot1:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "soilPot2:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "soilPot3:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "soilPot4:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "leafPot1:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "leafPot2:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "leafPot3:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "leafPot4:GND",
+      "black",
+      []
+    ],
+    [
+      "esp:5",
+      "pumpRelay:IN",
+      "blue",
+      []
+    ],
+    [
+      "esp:3V3",
+      "pumpRelay:VCC",
+      "red",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "pumpRelay:GND",
+      "black",
+      []
+    ],
+    [
+      "pumpPower:VCC",
+      "pumpRelay:COM",
+      "red",
+      []
+    ],
+    [
+      "pumpRelay:NO",
+      "pumpLed:A",
+      "blue",
+      []
+    ],
+    [
+      "pumpLed:C",
+      "pumpResistor:1",
+      "black",
+      []
+    ],
+    [
+      "pumpResistor:2",
+      "esp:GND.2",
+      "black",
+      []
+    ]
+  ],
+  "serialMonitor": {
+    "display": "terminal"
+  },
+  "dependencies": {}
+}

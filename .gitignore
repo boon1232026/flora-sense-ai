@@ -1,0 +1,47 @@
+# Secrets and local state
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Generic build outputs
+build/
+dist/
+out/
+*.o
+*.elf
+*.bin
+*.map
+
+# ESP-IDF
+firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.pkl
+*.joblib
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins*
+.pub-cache/
+coverage/
+mobile-app/build/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local artifacts
+logs/
+tmp/
+data/

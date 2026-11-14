@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Plant alert",
+  "type": "object",
+  "required": ["schema_version", "alert_id", "plant_id", "severity", "code", "message", "created_at"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "alert_id": {"type": "string"},
+    "plant_id": {"type": "string"},
+    "severity": {"enum": ["INFO", "WARNING", "CRITICAL"]},
+    "code": {"type": "string"},
+    "message": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "prediction_id": {"type": "string"}
+  },
+  "additionalProperties": false
+}
