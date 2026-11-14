@@ -279,6 +279,16 @@
       "attrs": {
         "text": "คำอธิบายสาย\nเขียว = เซนเซอร์ดิน\nส้ม = เซนเซอร์ใบ\nน้ำเงิน = วงจรปั๊ม\nแดง = 3V3 / ไฟเลี้ยง\nดำ = GND"
       }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "dhtPullup",
+      "top": -140.0,
+      "left": 330.0,
+      "attrs": {
+        "value": "10000",
+        "label": "ตัวต้านทาน Pull-up 10k"
+      }
     }
   ],
   "connections": [
@@ -496,6 +506,18 @@
       "pumpResistor:2",
       "esp:GND.2",
       "black",
+      []
+    ],
+    [
+      "dhtPullup:1",
+      "dht1:SDA",
+      "green",
+      []
+    ],
+    [
+      "dhtPullup:2",
+      "dht1:VCC",
+      "red",
       []
     ]
   ],
