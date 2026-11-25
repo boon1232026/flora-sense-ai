@@ -16,58 +16,58 @@ ESP32-S3 firmware → Wi-Fi → MQTT broker → infrastructure/mqtt_bridge.py
 > prefix (`flora-sense-ai/a007`). The bridge must be started with
 > `MQTT_TOPIC_PREFIX=flora` for the physical device.
 
-## 1. Bill of materials (1 set)
+## 1. Bill of materials (1 set) — รายการอุปกรณ์ 1 ชุด
 
-| # | Part | Qty | Notes |
-|---|---|---:|---|
-| 1 | ESP32-S3 DevKit | 1 | Matches `firmware/` target |
-| 2 | Capacitive soil moisture sensor (3.3 V analog) | 1 | Output must stay ≤ 3.3 V |
-| 3 | SHT31 module (I²C, addr `0x44`) | 1 | Air temperature + humidity |
-| 4 | MLX90614 module (I²C, addr `0x5A`) | 1 | Non-contact leaf temperature |
-| 5 | DC water pump | 1 | Sized to irrigation line |
-| 6 | Logic-level N-channel MOSFET module | 1 | Flyback diode included or added |
-| 7 | Pump power supply | 1 | Separate from logic supply |
-| 8 | Fuse + holder | 1 | Sized to pump current |
-| 9 | TEST interlock switch | 1 | Physically cuts the pump feed |
-| 10 | 5 V supply for the board | 1 | USB adapter is fine |
-| 11 | IP-rated enclosure + cable glands | 1 | Keeps electronics dry |
-| — | Breadboard, jumper wires, pull-down 10 kΩ | — | Bench prototyping |
-| — | Tubing + fittings, water container | — | Pump test |
+| # | Part | ชื่อภาษาไทย | Qty | Notes |
+|---|---|---|---:|---|
+| 1 | ESP32-S3 DevKit | บอร์ด ESP32-S3 | 1 | Matches `firmware/` target |
+| 2 | Capacitive soil moisture sensor (3.3 V analog) | เซนเซอร์วัดความชื้นในดินแบบ capacitive | 1 | Output must stay ≤ 3.3 V |
+| 3 | SHT31 module (I²C, addr `0x44`) | เซนเซอร์วัดอุณหภูมิและความชื้นอากาศ SHT31 | 1 | Air temperature + humidity |
+| 4 | MLX90614 module (I²C, addr `0x5A`) | เซนเซอร์วัดอุณหภูมิใบอินฟราเรด MLX90614 | 1 | Non-contact leaf temperature |
+| 5 | DC water pump | ปั๊มน้ำ DC | 1 | Sized to irrigation line |
+| 6 | Logic-level N-channel MOSFET module | โมดูลขับปั๊ม MOSFET | 1 | Flyback diode included or added |
+| 7 | Pump power supply | แหล่งจ่ายไฟปั๊ม | 1 | Separate from logic supply |
+| 8 | Fuse + holder | ฟิวส์ + แผงฟิวส์ | 1 | Sized to pump current |
+| 9 | TEST interlock switch | สวิตช์ตัดวงจรปั๊ม (TEST interlock) | 1 | Physically cuts the pump feed |
+| 10 | 5 V supply for the board | อแดปเตอร์ 5V สำหรับบอร์ด | 1 | USB adapter is fine |
+| 11 | IP-rated enclosure + cable glands | กล่องกันน้ำ + ข้อต่อสายกันน้ำ | 1 | Keeps electronics dry |
+| — | Breadboard, jumper wires, pull-down 10 kΩ | เบรดบอร์ด, สายจัมเปอร์, ตัวต้านทาน 10k | — | Bench prototyping |
+| — | Tubing + fittings, water container | สายยาง/ท่อน้ำ + ข้อต่อ + ภาชนะใส่น้ำ | — | Pump test |
 
-## 2. Wiring (matches `firmware` defaults)
+## 2. Wiring (matches `firmware` defaults) — การต่อสาย
 
-| Signal | ESP32 GPIO | Destination |
-|---|---:|---|
-| Soil ADC | GPIO4 | Soil sensor SIG |
-| I²C SDA | GPIO8 | SHT31 SDA + MLX90614 SDA (shared bus) |
-| I²C SCL | GPIO9 | SHT31 SCL + MLX90614 SCL |
-| Pump gate | GPIO5 | MOSFET module IN (with ~10 kΩ pull-down to GND) |
-| 3V3 | — | VCC of all three sensors |
-| GND | — | All sensor GND + MOSFET GND + pump supply (−) |
+| Signal | ESP32 GPIO | Destination | ต่ออะไร |
+|---|---:|---|---|
+| Soil ADC | GPIO4 | Soil sensor SIG | ขาสัญญาณเซนเซอร์ดิน |
+| I²C SDA | GPIO8 | SHT31 SDA + MLX90614 SDA (shared bus) | ขา SDA ของเซนเซอร์ทั้งสอง (บัสเดียวกัน) |
+| I²C SCL | GPIO9 | SHT31 SCL + MLX90614 SCL | ขา SCL ของเซนเซอร์ทั้งสอง |
+| Pump gate | GPIO5 | MOSFET module IN (with ~10 kΩ pull-down to GND) | ขา IN ของโมดูลขับปั๊ม + ตัวต้านทาน 10k ลง GND |
+| 3V3 | — | VCC of all three sensors | ไฟเลี้ยงเซนเซอร์ทั้ง 3 ตัว |
+| GND | — | All sensor GND + MOSFET GND + pump supply (−) | กราวด์ร่วมทั้งวงจร |
 
-Pump power path (kept separate from logic supply):
+Pump power path (kept separate from logic supply) — วงจรไฟเลี้ยงปั๊ม (แยกจากไฟบอร์ด):
 
 ```text
-Pump PSU (+) → Fuse → TEST interlock → Pump (+)
-Pump (−)     → MOSFET Drain
-MOSFET Src   → Pump PSU (−)
-Flyback diode across pump terminals (unless built into the module)
+ไฟปั๊ม (+) → ฟิวส์ → สวิตช์ TEST interlock → ปั๊ม (+)
+ปั๊ม (−)     → ขา Drain ของ MOSFET
+ขา Source ของ MOSFET → ไฟปั๊ม (−)
+ไดโอด flyback คร่อมขั้วปั๊ม (ถ้าโมดูลไม่มีในตัว)
 ```
 
 ```text
-ESP32-S3                          Sensors
-3V3 ───┬── SHT31 VIN
-       ├── MLX90614 VIN
-       └── Soil VCC
-GPIO4 ── Soil SIG
+ESP32-S3                          เซนเซอร์
+3V3 ───┬── SHT31 VIN          (เซนเซอร์อากาศ)
+       ├── MLX90614 VIN       (เซนเซอร์อุณหภูมิใบ)
+       └── Soil VCC           (เซนเซอร์ความชื้นดิน)
+GPIO4 ── Soil SIG             (สัญญาณเซนเซอร์ดิน)
 GPIO8 ──┬─ SHT31 SDA
-        └─ MLX90614 SDA
+        └─ MLX90614 SDA       (I2C บัสเดียวกัน)
 GPIO9 ──┬─ SHT31 SCL
         └─ MLX90614 SCL
-GPIO5 ── MOSFET IN (10 kΩ pull-down to GND)
-GND ────┬─ all sensor GND
+GPIO5 ── MOSFET IN            (ขับปั๊ม + ตัวต้านทาน 10k ลง GND)
+GND ────┬─ GND เซนเซอร์ทุกตัว
         ├─ MOSFET GND
-        └─ Pump PSU (−)   ← common ground, separate power path
+        └─ ไฟปั๊ม (−)         ← กราวด์ร่วม แต่แยกวงจรไฟเลี้ยง
 ```
 
 Warnings:
