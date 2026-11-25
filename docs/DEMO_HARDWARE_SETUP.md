@@ -18,66 +18,110 @@ ESP32-S3 firmware → Wi-Fi → MQTT broker → infrastructure/mqtt_bridge.py
 
 ## 1. Bill of materials (1 set) — รายการอุปกรณ์ 1 ชุด
 
-| # | Part | ชื่อภาษาไทย | Qty | Notes |
-|---|---|---|---:|---|
-| 1 | ESP32-S3 DevKit | บอร์ด ESP32-S3 | 1 | Matches `firmware/` target |
-| 2 | Capacitive soil moisture sensor (3.3 V analog) | เซนเซอร์วัดความชื้นในดินแบบ capacitive | 1 | Output must stay ≤ 3.3 V |
-| 3 | SHT31 module (I²C, addr `0x44`) | เซนเซอร์วัดอุณหภูมิและความชื้นอากาศ SHT31 | 1 | Air temperature + humidity |
-| 4 | MLX90614 module (I²C, addr `0x5A`) | เซนเซอร์วัดอุณหภูมิใบอินฟราเรด MLX90614 | 1 | Non-contact leaf temperature |
-| 5 | DC water pump | ปั๊มน้ำ DC | 1 | Sized to irrigation line |
-| 6 | Logic-level N-channel MOSFET module | โมดูลขับปั๊ม MOSFET | 1 | Flyback diode included or added |
-| 7 | Pump power supply | แหล่งจ่ายไฟปั๊ม | 1 | Separate from logic supply |
-| 8 | Fuse + holder | ฟิวส์ + แผงฟิวส์ | 1 | Sized to pump current |
-| 9 | TEST interlock switch | สวิตช์ตัดวงจรปั๊ม (TEST interlock) | 1 | Physically cuts the pump feed |
-| 10 | 5 V supply for the board | อแดปเตอร์ 5V สำหรับบอร์ด | 1 | USB adapter is fine |
-| 11 | IP-rated enclosure + cable glands | กล่องกันน้ำ + ข้อต่อสายกันน้ำ | 1 | Keeps electronics dry |
-| — | Breadboard, jumper wires, pull-down 10 kΩ | เบรดบอร์ด, สายจัมเปอร์, ตัวต้านทาน 10k | — | Bench prototyping |
-| — | Tubing + fittings, water container | สายยาง/ท่อน้ำ + ข้อต่อ + ภาชนะใส่น้ำ | — | Pump test |
+ชุด demo นี้สั่งจาก CyberTice + ใช้ของที่มีในชุด kit (ไม่ใช้บอร์ดฐาน
+ขยาย — ต่อผ่าน breadboard แทน):
 
-## 2. Wiring (matches `firmware` defaults) — การต่อสาย
+| รหัสสินค้า | Part | ชื่อภาษาไทย | Qty | ใช้ทำอะไร |
+|---|---|---|---:|---|
+| M1622 | ESP32-S3 core board N16R8 (DevKitC-1 compatible, USB-C) | บอร์ด ESP32-S3 | 1 | สมองของระบบ รัน `firmware/` |
+| M0409 | Capacitive Soil Moisture Sensor (3.3–5 V analog) | เซนเซอร์ความชื้นดิน capacitive | 1 | ความชื้นดิน → GPIO4 ADC |
+| M1657 | SHT31 module สีแดง (I²C `0x44`) | เซนเซอร์อากาศ SHT31 | 1 | อุณหภูมิ+ความชื้นอากาศ |
+| M0111 | GY-906-BAA MLX90614ESF (I²C `0x5A`, ~5 cm) | เซนเซอร์อุณหภูมิใบ IR | 1 | อุณหภูมิใบแบบไม่สัมผัส |
+| M1270 | MOSFET + Optocoupler module 5–36 V 5 A | โมดูลขับปั๊ม (มี opto) | 1 | ขับปั๊มจาก GPIO5 แยกสัญญาณ |
+| PJ005 | Starter kit mini (breadboard + jumpers + ฯลฯ) | ชุด breadboard + สายจัมเปอร์ | 1 | ที่ต่อรวมวงจรทั้งหมด |
+| PJ022 | Automatic watering DIY set | ชุดปั๊ม+ท่อ+ภาชนะ | 1 | ปั๊มจิ๋ว 3–6 V + ท่อ + กล่องน้ำ |
+
+ของที่มีอยู่แล้ว / หาเอง:
+
+| Item | ชื่อภาษาไทย | หมายเหตุ |
+|---|---|---|
+| USB-C cable (computer port) | สาย USB-C | ไฟเลี้ยงบอร์ด + flash + serial monitor เส้นเดียว |
+| USB cable #2 or phone charger 5 V | สาย USB เส้นที่ 2 / ที่ชาร์จมือถือ | **ไฟเลี้ยงปั๊มแยก** — ตัดปลายสายเอาแดง/ดำเข้า terminal |
+
+ของที่ BOM ก่อนหน้าระบุไว้แต่ชุด demo นี้ข้ามได้:
+
+- **บอร์ดฐานขยาย (M1692)** — ใช้ breadboard ใน PJ005 แทน
+- **ฟิวส์** — ไฟปั๊มมาจาก USB ซึ่งจำกัดกระแสในตัวอยู่แล้ว (ต้องมีเมื่อย้ายไป
+  adapter/แบตเตอรี่หรือติดตั้งจริง)
+- **สวิตช์ interlock** — ใช้วิธีถอด/เสียบสายไฟปั๊มแทน (ดู §5)
+- **อแดปเตอร์ 5 V บอร์ด** — USB คอมจ่ายอยู่แล้ว
+- **กล่องกันน้ำ** — ใช้ตอนติดตั้งกลางแจ้งจริงเท่านั้น
+- **ตัวต้านทาน pull-down 10 kΩ** — M1270 มีวงจรอินพุต opto ในตัว
+- เซนเซอร์ดิน resistive + relay ใน PJ022 — อะไหล่สำรอง ไม่ได้ใช้ใน wiring หลัก
+
+## 2. Assembly + wiring (matches `firmware` defaults) — การประกอบและต่อสาย
+
+GPIO ทั้งหมดตรงกับค่า default ใน `firmware/main/flora_config.h` —
+ไม่ต้องแก้โค้ด:
 
 | Signal | ESP32 GPIO | Destination | ต่ออะไร |
-|---|---:|---|---|
-| Soil ADC | GPIO4 | Soil sensor SIG | ขาสัญญาณเซนเซอร์ดิน |
-| I²C SDA | GPIO8 | SHT31 SDA + MLX90614 SDA (shared bus) | ขา SDA ของเซนเซอร์ทั้งสอง (บัสเดียวกัน) |
-| I²C SCL | GPIO9 | SHT31 SCL + MLX90614 SCL | ขา SCL ของเซนเซอร์ทั้งสอง |
-| Pump gate | GPIO5 | MOSFET module IN (with ~10 kΩ pull-down to GND) | ขา IN ของโมดูลขับปั๊ม + ตัวต้านทาน 10k ลง GND |
-| 3V3 | — | VCC of all three sensors | ไฟเลี้ยงเซนเซอร์ทั้ง 3 ตัว |
-| GND | — | All sensor GND + MOSFET GND + pump supply (−) | กราวด์ร่วมทั้งวงจร |
+|---|---|---:|---|
+| Soil ADC | GPIO4 | Soil sensor AO | ขาสัญญาณ analog เซนเซอร์ดิน |
+| I²C SDA | GPIO8 | SHT31 SDA + MLX90614 SDA | บัสเดียวกัน รวมใน breadboard |
+| I²C SCL | GPIO9 | SHT31 SCL + MLX90614 SCL | บัสเดียวกัน รวมใน breadboard |
+| Pump trigger | GPIO5 | M1270 ขา IN (ฝั่งสัญญาณ) | จุด LED opto สั่งปั๊ม |
+| 3V3 | — | VIN เซนเซอร์ทั้ง 3 ตัว | ไฟเลี้ยงเซนเซอร์ |
+| GND | — | GND เซนเซอร์ทุกตัว + GND ฝั่งสัญญาณ M1270 | กราวด์ร่วมฝั่ง logic |
 
-Pump power path (kept separate from logic supply) — วงจรไฟเลี้ยงปั๊ม (แยกจากไฟบอร์ด):
+### ขั้นตอนประกอบ (breadboard)
+
+1. **เสียบบอร์ด N16R8 ลง breadboard** — ขาสองข้างคร่อมร่องกลางของแผ่น
+   (ถ้าบอร์ดกว้างจนเสียบไม่ลง ให้วางข้างแผ่นแล้วใช้สายจัมเปอร์เมีย-เมีย
+   จากขาบอร์ดเข้าแถว breadboard แทน)
+2. **ทำรางไฟ** — เสียบจัมเปอร์จากขา `3V3` ของบอร์ดเข้าราง (+) และ `GND`
+   เข้าราง (−) ของ breadboard
+3. **เซนเซอร์ดิน (M0409)** — 3 เส้น: `VCC→ราง 3V3`, `GND→ราง GND`,
+   `AO→แถวเดียวกับขา GPIO4`
+4. **บัส I²C รวมสองเซนเซอร์** — เสียบ SHT31 (M1657) และ MLX90614 (M0111)
+   ลง breadboard คนละบล็อกแถว แล้ว:
+   - จัมเปอร์ `GPIO8` → แถวรวม SDA → แตะ SDA ของทั้งสองโมดูล
+   - จัมเปอร์ `GPIO9` → แถวรวม SCL → แตะ SCL ของทั้งสองโมดูล
+   - `VIN→3V3`, `GND→GND` ทั้งคู่
+   - address ต่างกัน (SHT31=`0x44`, MLX90614=`0x5A`) แชร์บัสได้ปลอดภัย
+5. **M1270 ฝั่งสัญญาณ** — `GPIO5→IN`, `GND→GND` ของขั้วสัญญาณ
+   (active-high: GPIO ขึ้น HIGH = opto จุด = ปั๊มติด ตรงกับ firmware)
+6. **M1270 ฝั่งโหลด (วงจรปั๊ม แยกไฟ)** — เดินสายผ่านขั้ว terminal ของโมดูล
+   ตามผังด้านล่าง สาย USB เส้นที่ 2 ตัดปลาย: แดง=+5V ดำ=GND
+
+Pump power path (แยกจากไฟบอร์ดเด็ดขาด):
 
 ```text
-ไฟปั๊ม (+) → ฟิวส์ → สวิตช์ TEST interlock → ปั๊ม (+)
-ปั๊ม (−)     → ขา Drain ของ MOSFET
-ขา Source ของ MOSFET → ไฟปั๊ม (−)
-ไดโอด flyback คร่อมขั้วปั๊ม (ถ้าโมดูลไม่มีในตัว)
+สาย USB เส้นที่ 2 (แดง +5V) ──► M1270 ขั้วโหลด IN+
+สาย USB เส้นที่ 2 (ดำ GND)  ──► M1270 ขั้วโหลด IN−
+ปั๊ม (+)                    ──► M1270 ขั้วโหลด OUT+
+ปั๊ม (−)                    ──► M1270 ขั้วโหลด OUT−
 ```
 
+ตำแหน่งขั้ว +/− ฝั่งโหลดอาจต่างกันเล็กน้อยตามล็อตโมดูล — ดู silkscreen
+บนแผ่น (ฝั่ง terminal ใหญ่) แล้วต่อตามขั้วที่ระบุ
+
 ```text
-ESP32-S3                          เซนเซอร์
-3V3 ───┬── SHT31 VIN          (เซนเซอร์อากาศ)
-       ├── MLX90614 VIN       (เซนเซอร์อุณหภูมิใบ)
-       └── Soil VCC           (เซนเซอร์ความชื้นดิน)
-GPIO4 ── Soil SIG             (สัญญาณเซนเซอร์ดิน)
-GPIO8 ──┬─ SHT31 SDA
-        └─ MLX90614 SDA       (I2C บัสเดียวกัน)
-GPIO9 ──┬─ SHT31 SCL
-        └─ MLX90614 SCL
-GPIO5 ── MOSFET IN            (ขับปั๊ม + ตัวต้านทาน 10k ลง GND)
-GND ────┬─ GND เซนเซอร์ทุกตัว
-        ├─ MOSFET GND
-        └─ ไฟปั๊ม (−)         ← กราวด์ร่วม แต่แยกวงจรไฟเลี้ยง
+[USB คอม #1] ──USB-C──► ESP32-S3 N16R8 เสียบ breadboard
+                          │ 3V3 ──► ราง+ ──► VIN เซนเซอร์ ×3
+                          │ GND ──► ราง− ──► GND เซนเซอร์ ×3 + M1270 GND(สัญญาณ)
+                          │ GPIO4 ──────────► Soil AO
+                          │ GPIO8 ──► แถวรวม SDA ──► SHT31.SDA + MLX.SDA
+                          │ GPIO9 ──► แถวรวม SCL ──► SHT31.SCL + MLX.SCL
+                          │ GPIO5 ──────────► M1270 IN (ฝั่งสัญญาณ)
+
+[USB #2/ชาร์จ 5V] ──(แดง)──► M1270 IN+ ┐
+                    ──(ดำ)──► M1270 IN− │ ฝั่งโหลด แยกไฟจากบอร์ด
+         ปั๊ม(+) ─────────► M1270 OUT+ │
+         ปั๊ม(−) ─────────► M1270 OUT− ┘
 ```
 
 Warnings:
 
-- Never power the pump from the ESP32 5 V/3.3 V rail.
-- Internal I²C pull-ups are enabled in firmware; add external 4.7 kΩ
-  pull-ups if sensor wires exceed ~30 cm.
-- Verify strapping pins on the purchased board before soldering; GPIO
-  choices can be changed in `firmware/main/Kconfig.projbuild` /
-  `idf.py menuconfig`.
+- **ห้ามจ่ายไฟปั๊มผ่านขา 5V/3V3 ของบอร์ดเด็ดขาด** — ไฟปั๊มวิ่งผ่านขั้ว
+  terminal ของ M1270 เท่านั้น
+- TEST interlock ของชุดนี้คือ **สาย USB เส้นที่ 2** — ยังไม่เสียบ =
+  วงจรปั๊มตัดสนิท ใช้แทนสวิตช์ในขั้นเทส (§5)
+- Internal I²C pull-ups เปิดใน firmware แล้ว สายเซนเซอร์สั้นบน
+  breadboard ไม่ต้องต่อ R เพิ่ม
+- MLX90614 หันกระบอก IR เข้าหาใบ ระยะ ~2–5 cm อย่าให้โดนแดดตรง
+- เซนเซอร์ดินเสียบลึกแค่เส้นขีดบนแผ่น (ส่วนอิเล็กทรอนิกส์ต้องพ้นดิน)
+- GPIO เปลี่ยนได้ใน `idf.py menuconfig` ถ้าบอร์ดจริงมีปัญหากับขาใดขาหนึ่ง
+
 
 ## 3. Flash the firmware
 
@@ -180,22 +224,21 @@ until step 4.
 
 ### Step 3 — Command path without pump power
 
-1. Leave the TEST interlock open (pump feed cut).
+1. ยังไม่เสียบสาย USB เส้นที่ 2 (ไฟเลี้ยงปั๊ม) — วงจรปั๊มตัดสนิท
 2. App → **Irrigation**, switch mode to MANUAL, send a 10-second start.
-3. MOSFET gate should switch (LED on the module if present); pump stays
-   off because the interlock physically cut the feed — this is the
-   intended TEST-path behavior.
+3. M1270 signal side should switch (opto LED on the module lights);
+   pump stays off because its power feed is physically unplugged —
+   this is the intended TEST-path behavior.
 4. Devices page shows command `STARTED`/`COMPLETED` ACK with matching
    `command_id` (UUID, non-retained).
 
 ### Step 4 — Real pump run (supervised)
 
-1. Submerge pump inlet in water, close the interlock switch.
+1. Submerge pump inlet in water, plug in USB cable #2 (pump feed).
 2. Send a 10-second MANUAL start → pump runs and auto-stops.
 3. Confirm the firmware hard limit: a >120 s request is capped by
    `FLORA_MAX_PUMP_RUN_MS` and the pump stops on its own.
-4. Open the interlock mid-run → pump must stop immediately regardless
-   of software state.
+4. ดึงสาย USB #2 ออกกลางรัน → ปั๊มต้องดับทันทีโดยไม่สนสถานะซอฟต์แวร์
 5. Switch device back to TEST mode → start requests are rejected.
 
 ### Step 5 — AUTO irrigation (optional)
@@ -213,7 +256,7 @@ until step 4.
 | Readings stream every sample interval | Monitoring + Reports |
 | Command ACK with UUID command_id | Devices |
 | Pump stops ≤ 120 s even if network dies | Bench test |
-| TEST interlock physically blocks pump | Bench test |
+| ถอดสายไฟปั๊มแล้วปั๊มดับทันที (physical cut) | Bench test |
 | Alerts appear on threshold breach | Alerts |
 
 ## 7. Troubleshooting
@@ -225,7 +268,7 @@ until step 4.
 | `PLANT_DEVICE_MISMATCH` | Plant not bound to that device ID |
 | No sensor data but device online | Bridge `MQTT_TOPIC_PREFIX` ≠ `flora` (Wokwi prefix mistake) |
 | Soil value flat/stuck | Sensor not analog or wired to wrong GPIO |
-| Pump never energizes | Interlock open, TEST mode, missing pull-down, or wrong gate GPIO |
+| Pump never energizes | USB #2 not plugged, TEST mode, wrong IN wiring, or wrong GPIO5 |
 | MQTT command ignored | Retained command or expired `expires_at` — firmware rejects both |
 
 ## 8. Safety reminders
@@ -233,6 +276,7 @@ until step 4.
 - Public HiveMQ (`broker.hivemq.com`) is for development/demo only —
   use a private authenticated broker for anything permanent.
 - Keep `FLORA_MODE=TEST` until the staged test above passes.
-- The interlock, fuse, and flyback protection are mandatory, not
-  optional, before connecting a real pump.
+- ชุด bench นี้ใช้การถอดสาย USB ปั๊มเป็น interlock — เมื่อย้ายไป
+  adapter/แบตเตอรี่หรือติดตั้งจริง **ต้องมี** ฟิวส์ + สวิตช์ interlock
+  + flyback protection ครบ
 - See `docs/SAFETY.md` and `docs/HARDWARE_MANUAL.md` before field use.
