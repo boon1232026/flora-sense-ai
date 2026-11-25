@@ -41,7 +41,7 @@ flutter run -d chrome \
 
 Then start the Wokwi ESP32-S3 project at `https://wokwi.com/projects/480673814770442241` or copy the files under `wokwi/` into a new Wokwi project.
 
-Complete first-run, sharing, and troubleshooting instructions are in `docs/INSTALLATION.md` and `docs/SIMULATOR.md`.
+Complete first-run, sharing, and troubleshooting instructions are in `docs/INSTALLATION.md` and `docs/SIMULATOR.md`. For one physical hardware set (parts, wiring, flashing, staged bench test), see `docs/DEMO_HARDWARE_SETUP.md`.
 
 ## Development entry points
 
